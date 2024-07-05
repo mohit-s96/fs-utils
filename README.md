@@ -2,7 +2,7 @@
 
 ### TODOS
 
-- [ ] Build a cli parser
+- [x] Build a cli parser
 
 ```sh
 fsc .
