@@ -4,6 +4,8 @@
 
 - [x] Build a cli parser
 
+- [x] add and configure a test runner
+
 ```sh
 fsc .
 ```
