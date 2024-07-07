@@ -12,16 +12,16 @@ typedef struct File
 
 typedef enum
 {
-    ls,
-    f,
-    cp,
-    mv,
-    neww,
-    stat,
+    LS,
+    F,
+    CP,
+    MV,
+    NEW,
+    STAT,
     UNSUPPORTED_COMMAND
 } commands;
 
-typedef struct Cli_args
+typedef struct
 {
     commands command;
     bool sort_by_size;
