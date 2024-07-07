@@ -70,8 +70,12 @@ Cli_args *parse_cli(int argc, char **argv)
         }
         if (command == neww && !args->new_dir_name)
         {
-            // next entry should be a a file name
-            args->new_dir_name = input;
+            // next entry should be a file name
+            if (input[0] != '-')
+            {
+
+                args->new_file_name = input;
+            }
         }
         if (args->command == ls && !args->path)
         {
@@ -98,14 +102,14 @@ Cli_args *parse_cli(int argc, char **argv)
         {
             if (i + 1 < argc)
             {
-                args->search_pattern = argv[i++];
+                args->search_pattern = argv[++i];
             }
         }
         if (0 == strcasecmp(input, "-d"))
         {
             if (i + 1 < argc)
             {
-                args->new_dir_name = argv[i++];
+                args->new_dir_name = argv[++i];
             }
         }
     }

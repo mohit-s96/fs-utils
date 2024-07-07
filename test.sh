@@ -1,3 +1,3 @@
-rm -f test
-clang -o test tests/test.c cli.c -lcmocka
-./test
+rm -f tests/test.out
+clang -o tests/test.out tests/test.c cli.c -lcmocka
+./tests/test.out
