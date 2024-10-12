@@ -1,53 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <sys/stat.h>
 #include "cli.h"
 #include "colors.c"
+#include "commands.h"
+#include "arena.h"
+
+#define ONE_MEG 1024 * 1024
 
 int main(int argc, char **argv)
 {
-    Cli_args *args = parse_cli(argc, argv);
+    Arena arena;
+    init_arena(&arena, ONE_MEG);
+    Cli_args *args = parse_cli(argc, argv, &arena);
     if (args->command != LS)
         return 1;
 
-    DIR *d;
-    struct dirent *dir;
-    d = opendir(args->path);
-    if (d)
-    {
-        while ((dir = readdir(d)) != NULL)
-        {
-            if (dir->d_type == DT_DIR)
-            {
-                print_cyan();
-                printf("%s\n", dir->d_name);
-                print_reset();
-            }
-            else if (dir->d_type == DT_LNK)
-            {
-                print_underlined();
-                printf("%s\n", dir->d_name);
-                print_reset();
-            }
-            else if (dir->d_type == DT_UNKNOWN)
-            {
-                print_red();
-                printf("%s\n", dir->d_name);
-                print_reset();
-            }
-            else
-            {
-                printf("%s\n", dir->d_name);
-            }
-        }
-        closedir(d);
-    }
-    else
-    {
-        print_red();
-        printf("'%s' is not a valid directory path\n", args->path);
-        print_reset();
-    }
-    free(args);
+    command_ls(args, &arena);
+    destroy(&arena);
     return 0;
 }
