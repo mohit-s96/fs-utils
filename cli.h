@@ -1,4 +1,7 @@
+#pragma once
+
 #include <stdbool.h>
+#include "arena.h"
 
 typedef struct File
 {
@@ -37,4 +40,4 @@ typedef struct
 
 commands get_command_type(char *command);
 
-Cli_args *parse_cli(int argc, char **argv);
+Cli_args *parse_cli(int argc, char **argv, Arena *arena);

@@ -140,11 +140,9 @@ int parse_stat(Cli_args *args, int argc, char **argv, int start_at)
     return 0;
 }
 
-Cli_args *parse_cli(int argc, char **argv)
+Cli_args *parse_cli(int argc, char **argv, Arena *arena)
 {
-    char *subcommand = "";
-    char *path = "";
-    Cli_args *args = (void *)malloc(sizeof(Cli_args));
+    Cli_args *args = (void *)allocate(arena, sizeof(Cli_args));
 
     if (argc == 1)
     {
