@@ -85,7 +85,6 @@ long long get_dir_size(const char *path, int max_depth)
     dir = opendir(path);
     if (dir == NULL)
     {
-        perror("opendir");
         return 0;
     }
 
