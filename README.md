@@ -9,14 +9,14 @@
 ```sh
 fsc .
 ```
-- [ ] prints out the files, directories of the current (or any) directory. defaults
+- [x] prints out the files, directories of the current (or any) directory. defaults
 to list view. has human readable sizes and permissions and date modified. default
 sorted by date modified. has the actual directory size instead of the block size.
 shows hidden files by default
 ```sh
 fsc . -s -a
 ```
-- [ ] same as above but -s sorts by size and -a sorts alphabetically
+- [x] same as above but -s sorts by size and -a sorts alphabetically
 
 ```sh
 fsc f . --file "hello.c"

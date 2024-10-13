@@ -1,8 +1,9 @@
-#include "cli.h"
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "cli.h"
+#include "utils.h"
 
 typedef int (*cli_parser)(Cli_args *args, int argc, char **argv, int start_at);
 
@@ -63,6 +64,13 @@ void parse_options(Cli_args *args, int argc, char **argv, int *start_at)
             if (*start_at + 1 < argc)
             {
                 args->search_pattern = argv[(*start_at) + 1];
+            }
+        }
+        if (0 == strcmp(input, "--depth"))
+        {
+            if (*start_at + 1 < argc)
+            {
+                args->depth = safe_parse_cli_int(argv[(*start_at) + 1]);
             }
         }
         if (0 == strcmp(input, "-d"))
@@ -143,6 +151,7 @@ int parse_stat(Cli_args *args, int argc, char **argv, int start_at)
 Cli_args *parse_cli(int argc, char **argv, Arena *arena)
 {
     Cli_args *args = (void *)allocate(arena, sizeof(Cli_args));
+    args->depth = 1;
 
     if (argc == 1)
     {
@@ -163,6 +172,11 @@ Cli_args *parse_cli(int argc, char **argv, Arena *arena)
             command_table[i].parser(args, argc, argv, start_at);
             break;
         }
+    }
+
+    if (args->depth < 0)
+    {
+        args->depth = 1;
     }
 
     return args;

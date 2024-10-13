@@ -1,10 +1,13 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <stdio.h>
-#include "utils.h"
-#include "cli.h"
 #include <time.h>
 #include <string.h>
+#include <pwd.h>
+#include <grp.h>
+#include "utils.h"
+#include "cli.h"
+#include "colors.h"
 
 typedef struct
 {
@@ -18,37 +21,132 @@ typedef struct
     long last_modified;
 } FileStats;
 
+int cmp_file_size(const void *a, const void *b)
+{
+    return ((FileStats *)b)->size - ((FileStats *)a)->size;
+}
+
+int cmp_file_name(const void *a, const void *b)
+{
+    return strcasecmp(((FileStats *)a)->name, ((FileStats *)b)->name);
+}
+
+int cmp_file_date(const void *a, const void *b)
+{
+    return ((FileStats *)b)->last_modified - ((FileStats *)a)->last_modified;
+}
+
+void print_name(FileStats *stats)
+{
+    switch (stats->mode & S_IFMT)
+    {
+    case S_IFBLK:
+    case S_IFCHR:
+    case S_IFIFO:
+        print_bold();
+        printf("%-30s", stats->name);
+        print_reset();
+        break;
+    case S_IFDIR:
+        print_cyan();
+        printf("%-30s", stats->name);
+        print_reset();
+        break;
+    case S_IFLNK:
+        print_blue();
+        printf("%-30s", stats->name);
+        print_reset();
+        break;
+    case S_IFREG:
+        printf("%-30s", stats->name);
+        break;
+    default:
+        printf("%-30s", stats->name);
+        break;
+    }
+}
+
+void print_stats(FileStats *stats, unsigned int size)
+{
+    printf("Total %d\n", size);
+    char buffer[10];
+    char s[100];
+    for (int i = 0; i < size; i++)
+    {
+        char *uname = get_user_name_from_uid(stats[i].uid);
+        char *gname = get_group_name_from_gid(stats[i].gid);
+        format_size(stats[i].size, buffer, sizeof(buffer));
+        struct tm *p = localtime(&stats[i].last_modified);
+        strftime(s, sizeof s, "%a %b %d %Y %H:%M", p);
+
+        printf("%-6s %-8s %-8s %-10s %-25s", stats[i].permissions, uname, gname, buffer, s);
+
+        print_name(&stats[i]);
+        printf("\n");
+    }
+}
+
+int get_dir_item_count(char *path)
+{
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(path);
+    int i = 0;
+    if (d)
+    {
+        while ((dir = readdir(d)) != NULL)
+        {
+            i++;
+        }
+        closedir(d);
+    }
+    return i;
+}
+
 void command_ls(Cli_args *args, Arena *arena)
 {
     char *path = args->path;
-    // bool sort_by_size = args->sort_by_size;
-    // bool sort_by_name = args->sort_by_name;
+    bool sort_by_size = args->sort_by_size;
+    bool sort_by_name = args->sort_by_name;
 
-    // stat the input path to get number of hard links
     struct stat sb;
-    if (stat(path, &sb) == -1)
+    if (lstat(path, &sb) == -1)
     {
         perror("stat");
         exit(EXIT_FAILURE);
     }
-    nlink_t links = sb.st_nlink;
+    // handle case when ls is called on not-a-dir
+    if ((sb.st_mode & S_IFMT) != S_IFDIR)
+    {
+        FileStats *stat_list = (FileStats *)allocate(arena, sizeof(FileStats));
+        stat_list->gid = sb.st_gid;
+        stat_list->uid = sb.st_uid;
+        stat_list->size = sb.st_size;
+        stat_list->inode = sb.st_ino;
+        stat_list->mode = sb.st_mode;
+        stat_list->name = path;
+        stat_list->permissions = get_user_permissions(sb.st_mode, arena);
 
-    // alloc `links` number of nodes
+        print_stats(stat_list, 1);
+        return;
+    }
+
     int i = 0;
-    FileStats *stat_list = (FileStats *)allocate(arena, links * sizeof(FileStats));
+    int num_items = get_dir_item_count(path);
+    FileStats *stat_list = (FileStats *)allocate(arena, num_items * sizeof(FileStats));
 
     DIR *d;
     struct dirent *dir;
     d = opendir(path);
     if (d)
     {
-        while ((dir = readdir(d)) != NULL && i < links)
+        while ((dir = readdir(d)) != NULL)
         {
-            stat_list[i].name = dir->d_name;
+            stat_list[i].name = strdup(dir->d_name);
             stat_list[i].inode = dir->d_ino;
 
             char *full_path = join_paths(path, dir->d_name, arena);
-            if (stat(full_path, &sb) == -1)
+            if (lstat(full_path, &sb) == -1)
             {
                 perror("stat");
                 exit(EXIT_FAILURE);
@@ -58,10 +156,10 @@ void command_ls(Cli_args *args, Arena *arena)
             stat_list[i].uid = sb.st_uid;
             stat_list[i].gid = sb.st_gid;
             stat_list[i].mode = sb.st_mode;
-            stat_list[i].last_modified = sb.st_mtimespec.tv_nsec;
+            stat_list[i].last_modified = sb.st_mtimespec.tv_sec;
             if ((sb.st_mode & S_IFMT) == S_IFDIR && strcmp(dir->d_name, ".") != 0 && strcmp(dir->d_name, "..") != 0)
             {
-                stat_list[i].size = get_dir_size(full_path, 1);
+                stat_list[i].size = get_dir_size(full_path, args->depth);
             }
             else
             {
@@ -69,19 +167,19 @@ void command_ls(Cli_args *args, Arena *arena)
             }
             i++;
         }
+        closedir(d);
     }
-
-    for (int j = 0; j < links; j++)
+    if (sort_by_size)
     {
-        printf("Name:             %s\n", stat_list[j].name);
-        printf("Permisssions:     %s\n", stat_list[j].permissions);
-        printf("UID:              %d\n", stat_list[j].uid);
-        printf("GID:              %d\n", stat_list[j].gid);
-        printf("Mode:             %lo\n", (unsigned long)stat_list[j].mode);
-        printf("Last Modified:    %s\n", ctime(&stat_list[j].last_modified));
-        printf("Size:             %lld\n", stat_list[j].size);
-
-        printf("------------------------------------\n");
+        quick_sort(stat_list, sizeof(FileStats), 0, num_items - 1, cmp_file_size);
     }
-    closedir(d);
+    else if (sort_by_name)
+    {
+        quick_sort(stat_list, sizeof(FileStats), 0, num_items - 1, cmp_file_name);
+    }
+    else
+    {
+        quick_sort(stat_list, sizeof(FileStats), 0, num_items - 1, cmp_file_date);
+    }
+    print_stats(stat_list, num_items);
 }

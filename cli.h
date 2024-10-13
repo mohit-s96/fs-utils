@@ -36,6 +36,7 @@ typedef struct
     char *new_file_name;
     char *new_dir_name;
     char *path;
+    int depth;
 } Cli_args;
 
 commands get_command_type(char *command);

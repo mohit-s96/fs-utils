@@ -1,3 +1,5 @@
+#include "colors.h"
+
 void print_red()
 {
     printf("\033[31m");

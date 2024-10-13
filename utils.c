@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <pwd.h>
 #include <grp.h>
+#include <errno.h>
+#include <limits.h>
 
 #include "utils.h"
 
@@ -61,21 +63,6 @@ int cmp_string(const void *a, const void *b)
 {
     return strcmp(*(char **)a, *(char **)b);
 }
-
-// int main(void)
-// {
-//     char *nums[8] = {"fooo", "aooz", "azi", "faz", "wab", "cat", "koa", "dog"};
-//     // int n = sizeof(nums) / sizeof(nums[0]);
-//     quick_sort(nums, sizeof(char *), 0, 7, cmp_string);
-//     for (int i = 0; i < 8; i++)
-//     {
-//         printf("%s, ", nums[i]);
-//     }
-
-//     printf("\n");
-
-//     return 0;
-// }
 
 bool is_symlink(mode_t mode)
 {
@@ -135,7 +122,6 @@ char *get_user_name_from_uid(uid_t uid)
     pwd = getpwuid(uid);
     if (pwd != NULL)
     {
-
         return pwd->pw_name;
     }
     return NULL;
@@ -198,4 +184,53 @@ char *get_user_permissions(mode_t mode, Arena *arena)
     permissions[3] = '\0';                         // Null terminator for the string
 
     return permissions;
+}
+
+void format_size(unsigned long long bytes, char *output, size_t output_size)
+{
+    const char *units[] = {"B", "KB", "MB", "GB", "TB", "PB"};
+    int unit_index = 0;
+    double size = (double)bytes;
+
+    // Scale the size down to a more suitable unit
+    while (size >= 1024 && unit_index < 5)
+    {
+        size /= 1024;
+        unit_index++;
+    }
+
+    // Format the result into the output buffer
+    snprintf(output, output_size, "%.1f%s", size, units[unit_index]);
+}
+
+int safe_parse_cli_int(char *num)
+{
+    char *endptr;
+    errno = 0; // Reset errno before the call to strtol
+
+    long value = strtol(num, &endptr, 10);
+
+    if (errno == ERANGE)
+    {
+        // Error: The number is out of range for a long integer
+        return 1;
+    }
+    if (endptr == num)
+    {
+        // Error: No digits were found. Invalid input
+        return 1;
+    }
+    if (*endptr != '\0')
+    {
+        // Error: Trailing characters after the number
+        return 1;
+    }
+    if (value < INT_MIN || value > INT_MAX)
+    {
+        // Error: The number is out of range for an int
+        return 1;
+    }
+
+    // Safe to cast to int
+    return (int)value;
 }

@@ -3,7 +3,6 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include "cli.h"
-#include "colors.c"
 #include "commands.h"
 #include "arena.h"
 
