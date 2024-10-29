@@ -103,7 +103,7 @@ int get_dir_item_count(char *path)
     return i;
 }
 
-void command_ls(Cli_args *args, Arena *arena)
+int command_ls(Cli_args *args, Arena *arena)
 {
     char *path = args->path;
     bool sort_by_size = args->sort_by_size;
@@ -113,7 +113,7 @@ void command_ls(Cli_args *args, Arena *arena)
     if (lstat(path, &sb) == -1)
     {
         perror("stat");
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
     // handle case when ls is called on not-a-dir
     if ((sb.st_mode & S_IFMT) != S_IFDIR)
@@ -128,7 +128,7 @@ void command_ls(Cli_args *args, Arena *arena)
         stat_list->permissions = get_user_permissions(sb.st_mode, arena);
 
         print_stats(stat_list, 1);
-        return;
+        return EXIT_SUCCESS;
     }
 
     int i = 0;
@@ -142,14 +142,14 @@ void command_ls(Cli_args *args, Arena *arena)
     {
         while ((dir = readdir(d)) != NULL)
         {
-            stat_list[i].name = strdup(dir->d_name);
+            stat_list[i].name = duplicate_string(dir->d_name, arena);
             stat_list[i].inode = dir->d_ino;
 
             char *full_path = join_paths(path, dir->d_name, arena);
             if (lstat(full_path, &sb) == -1)
             {
                 perror("stat");
-                exit(EXIT_FAILURE);
+                return EXIT_FAILURE;
             }
 
             stat_list[i].permissions = get_user_permissions(sb.st_mode, arena);
@@ -157,9 +157,10 @@ void command_ls(Cli_args *args, Arena *arena)
             stat_list[i].gid = sb.st_gid;
             stat_list[i].mode = sb.st_mode;
             stat_list[i].last_modified = sb.st_mtimespec.tv_sec;
-            if ((sb.st_mode & S_IFMT) == S_IFDIR && strcmp(dir->d_name, ".") != 0 && strcmp(dir->d_name, "..") != 0)
+            if ((sb.st_mode & S_IFMT) == S_IFDIR && !check_if_parent_dir(dir->d_name))
             {
-                stat_list[i].size = get_dir_size(full_path, args->depth);
+                unsigned long long s = get_dir_size(full_path, args->depth);
+                stat_list[i].size = s;
             }
             else
             {
@@ -182,4 +183,5 @@ void command_ls(Cli_args *args, Arena *arena)
         quick_sort(stat_list, sizeof(FileStats), 0, num_items - 1, cmp_file_date);
     }
     print_stats(stat_list, num_items);
+    return EXIT_SUCCESS;
 }
