@@ -69,6 +69,11 @@ bool is_symlink(mode_t mode)
     return (mode & S_IFMT) == S_IFLNK;
 }
 
+bool check_if_parent_dir(char *dir_name)
+{
+    return strcmp(dir_name, ".") == 0 || strcmp(dir_name, "..") == 0;
+}
+
 long long get_dir_size(const char *path, int max_depth)
 {
     DIR *dir;
@@ -90,7 +95,7 @@ long long get_dir_size(const char *path, int max_depth)
 
     while ((entry = readdir(dir)) != NULL)
     {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+        if (check_if_parent_dir(entry->d_name))
         {
             continue;
         }
@@ -232,4 +237,12 @@ int safe_parse_cli_int(char *num)
 
     // Safe to cast to int
     return (int)value;
+}
+
+char *duplicate_string(char *str, Arena *arena)
+{
+    int length = strlen(str);
+    char *new_string = (char *)allocate(arena, length);
+    memcpy(new_string, str, length);
+    return new_string;
 }

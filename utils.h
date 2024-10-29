@@ -14,3 +14,5 @@ char *join_paths(const char *path1, const char *path2, Arena *arena);
 char *get_user_permissions(mode_t mode, Arena *arena);
 void format_size(unsigned long long bytes, char *output, size_t output_size);
 int safe_parse_cli_int(char *num);
+bool check_if_parent_dir(char *dir_name);
+char *duplicate_string(char *str, Arena *arena);
