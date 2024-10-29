@@ -3,3 +3,4 @@ main
 .vscode
 *.out
 *.dSYM/
+.DS_Store

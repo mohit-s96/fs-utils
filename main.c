@@ -13,10 +13,15 @@ int main(int argc, char **argv)
     Arena arena;
     init_arena(&arena, ONE_MEG);
     Cli_args *args = parse_cli(argc, argv, &arena);
-    if (args->command != LS)
-        return 1;
-
-    command_ls(args, &arena);
+    int exit_code = EXIT_SUCCESS;
+    if (args->command == LS)
+        exit_code = command_ls(args, &arena);
+    else if (args->command == F)
+        exit_code = command_find(args, &arena);
+    else
+    {
+        exit_code = EXIT_FAILURE;
+    }
     destroy(&arena);
-    return 0;
+    return exit_code;
 }
