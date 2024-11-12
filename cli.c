@@ -18,7 +18,7 @@ int parse_ls(Cli_args *, int, char **, int);
 int parse_find(Cli_args *, int, char **, int);
 int parse_cp_mv(Cli_args *, int, char **, int);
 int parse_new(Cli_args *, int, char **, int);
-int parse_stat(Cli_args *, int, char **, int);
+int parse_size(Cli_args *, int, char **, int);
 
 command_lookup command_table[] = {
     {"ls", LS, parse_ls},
@@ -26,7 +26,7 @@ command_lookup command_table[] = {
     {"cp", CP, parse_cp_mv},
     {"mv", MV, parse_cp_mv},
     {"new", NEW, parse_new},
-    {"stat", STAT, parse_stat},
+    {"size", SIZE, parse_size},
     {NULL, UNSUPPORTED_COMMAND, NULL}};
 
 commands get_command_type(char *command)
@@ -137,14 +137,13 @@ int parse_new(Cli_args *args, int argc, char **argv, int start_at)
     return 0;
 }
 
-int parse_stat(Cli_args *args, int argc, char **argv, int start_at)
+int parse_size(Cli_args *args, int argc, char **argv, int start_at)
 {
     if (start_at < argc)
     {
         args->path = argv[start_at];
     }
     parse_options(args, argc, argv, &start_at);
-    return 0;
     return 0;
 }
 

@@ -53,6 +53,6 @@ fsc new -d "my_dev"
 - [x] creates a directory named "my_dev" in the current directory
 
 ```sh
-fsc stat .
+fsc size .
 ```
-- [ ] gives the total space occupied on the disk by the current directory or file
+- [x] gives the total space occupied on the disk by the current directory or file

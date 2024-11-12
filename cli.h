@@ -20,7 +20,7 @@ typedef enum
     CP,
     MV,
     NEW,
-    STAT,
+    SIZE,
     UNSUPPORTED_COMMAND
 } commands;
 

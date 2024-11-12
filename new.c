@@ -12,9 +12,9 @@ int command_new(Cli_args *args, Arena *arena)
         if (success != 0)
         {
             fprintf(stderr, "Error creating directory\n");
-            return 1;
+            return EXIT_FAILURE;
         }
-        return 0;
+        return EXIT_SUCCESS;
     }
     if (args->new_file_name)
     {
@@ -22,10 +22,10 @@ int command_new(Cli_args *args, Arena *arena)
         if (file == NULL)
         {
             fprintf(stderr, "Error creating file\n");
-            return 1;
+            return EXIT_FAILURE;
         }
         fclose(file);
-        return 0;
+        return EXIT_SUCCESS;
     }
-    return 1;
+    return EXIT_FAILURE;
 }

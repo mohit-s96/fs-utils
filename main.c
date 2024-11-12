@@ -20,6 +20,8 @@ int main(int argc, char **argv)
         exit_code = command_find(args, &arena);
     else if (args->command == NEW)
         exit_code = command_new(args, &arena);
+    else if (args->command == SIZE)
+        exit_code = command_size(args, &arena);
     else
     {
         exit_code = EXIT_FAILURE;
