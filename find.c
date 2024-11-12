@@ -6,6 +6,7 @@
 #include "commands.h"
 #include "utils.h"
 #include "colors.h"
+#include "pattern.h"
 
 #define MAX_QUEUE_SIZE 10000
 char *queue[MAX_QUEUE_SIZE];
@@ -79,7 +80,7 @@ void *work(void *arg)
         {
             bool is_dir = d->d_type == DT_DIR;
             char *dir_name = d->d_name;
-            if (strcmp(worker_args->search_pattern, dir_name) == 0)
+            if (match_pattern(worker_args->search_pattern, dir_name))
             {
                 flag = true;
                 if (is_dir)
