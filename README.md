@@ -21,7 +21,7 @@ fsc . -s -a
 ```sh
 fsc f . --file "hello.c"
 ```
-- [ ] means find and print full paths of any file in the current directory with name
+- [x] means find and print full paths of any file in the current directory with name
 containing the string "hello.c". recursive by default. the name can also be a 
 pattern like "*.mp4" etc. maybe make search multi threaded??
 
