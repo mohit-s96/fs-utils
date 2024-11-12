@@ -28,7 +28,7 @@ pattern like "*.mp4" etc. maybe make search multi threaded??
 ```sh
 fsc f . --file "hello.c" -nr
 ```
-- [ ] nr means no recursion so only search the top-level dir
+- [x] nr means no recursion so only search the top-level dir
 
 ```sh
 fsc cp <source> <destination>

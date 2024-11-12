@@ -23,6 +23,7 @@ typedef struct
     char *search_pattern;
     Arena *arena;
     int id;
+    bool no_recurse;
 } WorkerArgs;
 
 void enqueue(char *path)
@@ -93,7 +94,7 @@ void *work(void *arg)
                     print_reset();
                 }
             }
-            if (is_dir && !check_if_parent_dir(dir_name))
+            if (is_dir && !worker_args->no_recurse && !check_if_parent_dir(dir_name))
             {
                 char *new_path = join_paths(path, dir_name, worker_args->arena);
                 // printf("thread [%d] - new path: %s\n", id, new_path);
@@ -143,7 +144,7 @@ int command_find(Cli_args *args, Arena *arena)
     queue[queue_size++] = args->path;
     active_tasks++;
 
-    WorkerArgs worker_args = {.arena = arena, .search_pattern = args->search_pattern};
+    WorkerArgs worker_args = {.arena = arena, .search_pattern = args->search_pattern, .no_recurse = args->no_recurse};
     worker_args.arena = arena;
     worker_args.search_pattern = args->search_pattern;
     for (int i = 0; i < number_of_processors; i++)
