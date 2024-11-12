@@ -45,12 +45,12 @@ source can be file or directory
 ```sh
 fsc new "file.txt"
 ```
-- [ ] creates a file named "file.txt" in the current directory
+- [x] creates a file named "file.txt" in the current directory
 
 ```sh
 fsc new -d "my_dev"
 ```
-- [ ] creates a directory named "my_dev" in the current directory
+- [x] creates a directory named "my_dev" in the current directory
 
 ```sh
 fsc stat .

@@ -18,6 +18,8 @@ int main(int argc, char **argv)
         exit_code = command_ls(args, &arena);
     else if (args->command == F)
         exit_code = command_find(args, &arena);
+    else if (args->command == NEW)
+        exit_code = command_new(args, &arena);
     else
     {
         exit_code = EXIT_FAILURE;
