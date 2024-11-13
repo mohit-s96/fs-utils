@@ -241,8 +241,9 @@ int safe_parse_cli_int(char *num)
 
 char *duplicate_string(char *str, Arena *arena)
 {
-    int length = strlen(str);
+    int length = strlen(str) + 1;
     char *new_string = (char *)allocate(arena, length);
     memcpy(new_string, str, length);
+    new_string[length - 1] = '\0';
     return new_string;
 }
