@@ -20,7 +20,6 @@ void *work(void *arg)
 {
     WorkerArgs *worker_args = (WorkerArgs *)arg;
     char *path;
-    // int id = worker_args->id;
     while ((path = dequeue()) != NULL)
     {
         struct dirent *d;
@@ -28,19 +27,18 @@ void *work(void *arg)
         dir = opendir(path);
         if (dir == NULL)
         {
-            pthread_mutex_lock(&queue_mutex);
-            active_tasks--; // Decrement active tasks if directory open fails
-            pthread_mutex_unlock(&queue_mutex);
+            pthread_mutex_lock(get_queue_mutex());
+            set_active_tasks(get_active_tasks() - 1); // Decrement active tasks if directory open fails
+            pthread_mutex_unlock(get_queue_mutex());
             continue;
         }
-        // printf("thread [%d] - processing: %s\n", id, path);
         while ((d = readdir(dir)) != NULL)
         {
             bool is_dir = d->d_type == DT_DIR;
             char *dir_name = d->d_name;
             if (match_pattern(worker_args->search_pattern, dir_name))
             {
-                flag = true;
+                set_flag(true);
                 if (is_dir)
                 {
                     print_cyan();
@@ -54,23 +52,20 @@ void *work(void *arg)
             if (is_dir && !worker_args->no_recurse && !check_if_parent_dir(dir_name))
             {
                 char *new_path = join_paths(path, dir_name, worker_args->arena);
-                // printf("thread [%d] - new path: %s\n", id, new_path);
                 enqueue(new_path);
-                // printf("thread [%d] - enqueued: %s\n", id, new_path);
             }
         }
         closedir(dir);
-        // printf("thread [%d] - done with: %s\n", id, path);
-        pthread_mutex_lock(&queue_mutex);
-        active_tasks--;
+        pthread_mutex_lock(get_queue_mutex());
+        set_active_tasks(get_active_tasks() - 1);
 
         // If no tasks are left, signal all threads to exit
-        if (active_tasks == 0 && queue_size == 0)
+        if (get_active_tasks() == 0 && get_queue_size() == 0)
         {
-            done = true;
-            pthread_cond_broadcast(&queue_not_empty); // Notify all waiting threads
+            set_done(true);
+            pthread_cond_broadcast(get_not_empty_condition()); // Notify all waiting threads
         }
-        pthread_mutex_unlock(&queue_mutex);
+        pthread_mutex_unlock(get_queue_mutex());
     }
     return NULL;
 }
@@ -98,8 +93,7 @@ int command_find(Cli_args *args, Arena *arena)
         return EXIT_FAILURE;
     }
 
-    queue[queue_size++] = args->path;
-    active_tasks++;
+    enqueue(args->path);
 
     WorkerArgs worker_args = {.arena = arena, .search_pattern = args->search_pattern, .no_recurse = args->no_recurse};
     worker_args.arena = arena;
@@ -119,11 +113,11 @@ int command_find(Cli_args *args, Arena *arena)
         pthread_join(threads[i], NULL);
     }
 
-    pthread_mutex_destroy(&queue_mutex);
-    pthread_cond_destroy(&queue_not_empty);
-    pthread_cond_destroy(&queue_not_full);
+    pthread_mutex_destroy(get_queue_mutex());
+    pthread_cond_destroy(get_not_empty_condition());
+    pthread_cond_destroy(get_not_full_condition());
 
-    if (!flag)
+    if (!get_flag())
     {
         return EXIT_FAILURE;
     }

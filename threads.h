@@ -1,49 +1,22 @@
 #pragma once
-
-#include <pthread.h>
 #include <stdbool.h>
+#include <pthread.h>
 
-#define MAX_QUEUE_SIZE 10000
-char *queue[MAX_QUEUE_SIZE];
-int queue_size = 0;
-int active_tasks = 0; // Tracks both queued and dequeued tasks being processed.
-bool flag = false, done = false;
+void enqueue(char *path);
+char *dequeue();
 
-pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t queue_not_empty = PTHREAD_COND_INITIALIZER;
-pthread_cond_t queue_not_full = PTHREAD_COND_INITIALIZER;
+void set_flag(bool value);
+bool get_flag();
 
-#include "threads.h"
+void set_done(bool value);
+bool get_done();
 
-void enqueue(char *path)
-{
-    pthread_mutex_lock(&queue_mutex);
-    while (queue_size == MAX_QUEUE_SIZE)
-    {
-        pthread_cond_wait(&queue_not_full, &queue_mutex);
-    }
-    queue[queue_size++] = path;
-    active_tasks++;
-    pthread_cond_signal(&queue_not_empty);
-    pthread_mutex_unlock(&queue_mutex);
-}
+int get_queue_size();
+void set_queue_size(int value);
 
-char *dequeue()
-{
-    pthread_mutex_lock(&queue_mutex);
-    while (queue_size == 0 && !done)
-    {
-        pthread_cond_wait(&queue_not_empty, &queue_mutex);
-    }
-    if (done && queue_size == 0)
-    {
-        pthread_mutex_unlock(&queue_mutex);
-        return NULL;
-    }
-    char *path = queue[--queue_size];
-    queue[queue_size] = NULL;
-    pthread_cond_signal(&queue_not_full);
-    pthread_mutex_unlock(&queue_mutex);
+int get_active_tasks();
+void set_active_tasks(int value);
 
-    return path;
-}
+pthread_mutex_t *get_queue_mutex();
+pthread_cond_t *get_not_full_condition();
+pthread_cond_t *get_not_empty_condition();

@@ -6,8 +6,16 @@
 #include <grp.h>
 #include <errno.h>
 #include <limits.h>
-
+#include <unistd.h>
+#include "threads.h"
 #include "utils.h"
+
+typedef struct
+{
+    unsigned long long size;
+    pthread_mutex_t *mutex;
+    Arena *arena;
+} WorkerArgs;
 
 void swap(void *a, void *b, int size)
 {
@@ -72,6 +80,88 @@ bool is_symlink(mode_t mode)
 bool check_if_parent_dir(char *dir_name)
 {
     return strcmp(dir_name, ".") == 0 || strcmp(dir_name, "..") == 0;
+}
+
+void *work_size(void *arg)
+{
+    WorkerArgs *worker_args = (WorkerArgs *)arg;
+    struct stat st;
+    char full_path[1024];
+    char *path;
+    while ((path = dequeue()) != NULL)
+    {
+        struct dirent *d;
+        DIR *dir;
+        dir = opendir(path);
+        if (dir == NULL)
+        {
+            pthread_mutex_lock(get_queue_mutex());
+            set_active_tasks(get_active_tasks() - 1); // Decrement active tasks if directory open fails
+            pthread_mutex_unlock(get_queue_mutex());
+            continue;
+        }
+        while ((d = readdir(dir)) != NULL)
+        {
+            bool is_dir = d->d_type == DT_DIR;
+            char *dir_name = d->d_name;
+            snprintf(full_path, sizeof(full_path), "%s/%s", path, dir_name);
+            if (lstat(full_path, &st) == 0)
+            {
+                if (is_dir && !check_if_parent_dir(dir_name))
+                {
+                    char *new_path = join_paths(path, dir_name, worker_args->arena);
+                    enqueue(new_path);
+                }
+                else
+                {
+                    pthread_mutex_lock(worker_args->mutex);
+                    worker_args->size += st.st_blocks * 512;
+                    pthread_mutex_unlock(worker_args->mutex);
+                }
+            }
+        }
+        closedir(dir);
+        pthread_mutex_lock(get_queue_mutex());
+        set_active_tasks(get_active_tasks() - 1);
+
+        // If no tasks are left, signal all threads to exit
+        if (get_active_tasks() == 0 && get_queue_size() == 0)
+        {
+            set_done(true);
+            pthread_cond_broadcast(get_not_empty_condition()); // Notify all waiting threads
+        }
+        pthread_mutex_unlock(get_queue_mutex());
+    }
+    return NULL;
+}
+
+long long get_dir_size_threaded(char *path, int max_depth, Arena *arena)
+{
+    long number_of_processors = sysconf(_SC_NPROCESSORS_ONLN);
+    pthread_t threads[number_of_processors];
+    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+    WorkerArgs args = {.mutex = &mutex, .size = 0, .arena = arena};
+
+    enqueue(path);
+
+    for (int i = 0; i < number_of_processors; i++)
+    {
+        if (pthread_create(&threads[i], NULL, work_size, &args) != 0)
+        {
+            fprintf(stderr, "Failed to create thread %d\n", i);
+            return EXIT_FAILURE;
+        }
+    }
+
+    for (int i = 0; i < number_of_processors; i++)
+    {
+        pthread_join(threads[i], NULL);
+    }
+
+    pthread_mutex_destroy(get_queue_mutex());
+    pthread_cond_destroy(get_not_empty_condition());
+    pthread_cond_destroy(get_not_full_condition());
+    return args.size;
 }
 
 long long get_dir_size(const char *path, int max_depth)
