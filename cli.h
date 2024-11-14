@@ -3,16 +3,6 @@
 #include <stdbool.h>
 #include "arena.h"
 
-typedef struct File
-{
-    char *name;
-    char *contents;
-    bool isDir;
-    bool isFile;
-    struct File **children;
-    struct File *sibling;
-} File;
-
 typedef enum
 {
     LS,
