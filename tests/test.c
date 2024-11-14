@@ -120,10 +120,10 @@ static void new_dir_success(void **state)
 
 static void stat_success(void **state)
 {
-    char *argv[] = {"fsc", "stat", "."};
+    char *argv[] = {"fsc", "size", "."};
     int argc = 3;
     Cli_args *args = parse_cli(argc, argv, &arena);
-    assert_int_equal(STAT, args->command);
+    assert_int_equal(SIZE, args->command);
     assert_string_equal(".", args->path);
 }
 

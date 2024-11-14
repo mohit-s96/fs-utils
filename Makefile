@@ -1,8 +1,8 @@
 CC = clang
 CFLAGS = -Wall -Werror
 LDFLAGS = -fno-sanitize=safe-stack
-SOURCES = main.c cli.c utils.c ls.c arena.c colors.c find.c pattern.c new.c size.c threads.c
-TEST_SOURCES = tests/test.c cli.c arena.c utils.c
+SOURCES = main.c cli.c utils.c ls.c arena.c colors.c find.c pattern.c new.c size.c threads.c copy.c
+TEST_SOURCES = tests/test.c cli.c arena.c utils.c threads.c
 EXECUTABLE = main.out
 TEST_EXECUTABLE = tests/test.out
 INSTALL_NAME = fs
