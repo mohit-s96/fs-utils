@@ -4,7 +4,7 @@
 #include "commands.h"
 #include "utils.h"
 
-int copy_file_or_dir(FILE *f_source, FILE *f_dest)
+int copy_file(FILE *f_source, FILE *f_dest)
 {
     char buffer[BUFSIZ];
     size_t bytes_read;
@@ -93,7 +93,7 @@ int copy_dir_or_file(char *source, char *destination, bool flag, Arena *arena)
     {
         FILE *f_source = fopen(source, "rb");
         FILE *f_dest = is_dest_dir ? fopen(join_paths(destination, source, arena), "wb") : fopen(destination, "wb");
-        return copy_file_or_dir(f_source, f_dest);
+        return copy_file(f_source, f_dest);
     }
     else
     {
@@ -154,10 +154,6 @@ int copy_dir_or_file(char *source, char *destination, bool flag, Arena *arena)
         {
             if (!check_if_parent_dir(d->d_name))
             {
-                if (strcmp(d->d_name, ".git") == 0)
-                {
-                    (void)1;
-                }
                 int status = copy_dir_or_file(join_paths(source, d->d_name, arena), join_paths(destination, d->d_name, arena), flag, arena);
                 if (status != EXIT_SUCCESS)
                 {
