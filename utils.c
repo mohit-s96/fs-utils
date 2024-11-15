@@ -337,3 +337,76 @@ char *duplicate_string(char *str, Arena *arena)
     new_string[length - 1] = '\0';
     return new_string;
 }
+
+Tuple *parent_path_from_child(char *path, size_t length, Tuple *t, Arena *arena)
+{
+    t->parent = NULL;
+    t->child = NULL;
+    char *parent_path = (char *)allocate(arena, length + 1);
+    char *child_path = (char *)allocate(arena, length + 1);
+    parent_path[length] = '\0';
+    if (length == 1 && path[0] == '/')
+    {
+        parent_path[0] = '/';
+        parent_path[1] = '\0';
+        t->parent = parent_path;
+        return t;
+    }
+    int i = length;
+    if (path[length - 1] == '/')
+    {
+        i--;
+    }
+
+    while (i-- > 0)
+    {
+        if (path[i] == '/')
+        {
+            break;
+        }
+    }
+
+    if (i == 0)
+    {
+        parent_path[0] = '/';
+        parent_path[1] = '\0';
+        t->parent = parent_path;
+        return t;
+    }
+    if (i < 0)
+        return t;
+
+    strncpy(parent_path, path, i);
+    t->parent = parent_path;
+    if (length - 1 - i - 1 > 0)
+    {
+        strncpy(child_path, path + i + 1, path[length - 1] == '/' ? length - i - 2 : length - i - 1);
+        t->child = child_path;
+    }
+    return t;
+}
+
+bool str_ends_with_char(char *str, int length, char ch)
+{
+    return length > 0 && str[length - 1] == ch;
+}
+
+char *parse_special_dir(char *path, int length)
+{
+    if (length == 0)
+        return NULL;
+    if (length == 1 && str_ends_with_char(path, 1, '.'))
+        return ".";
+    if (length == 2 && str_ends_with_char(path, 2, '.') && str_ends_with_char(path, 1, '.'))
+        return "..";
+
+    if (str_ends_with_char(path, length, '/'))
+        length--;
+
+    if (str_ends_with_char(path, length, '.') && str_ends_with_char(path, length - 1, '/'))
+        return ".";
+    if (str_ends_with_char(path, length, '.') && str_ends_with_char(path, length - 1, '.') && str_ends_with_char(path, length - 2, '/'))
+        return "..";
+
+    return NULL;
+}

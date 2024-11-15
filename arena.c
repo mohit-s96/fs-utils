@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include "arena.h"
+#include "utils.h"
 
 void *init_arena(Arena *arena, size_t size)
 {
@@ -100,4 +101,46 @@ void destroy(Arena *arena)
 
     pthread_mutex_unlock(&arena->mutex);
     pthread_mutex_destroy(&arena->mutex);
+}
+
+void dump_arena_stats(Arena *arena)
+{
+    if (!arena)
+    {
+        printf("Arena not initialized.\n");
+        return;
+    }
+
+    pthread_mutex_lock(&arena->mutex); // Lock the arena
+
+    Block *current = arena->head;
+    int block_count = 0;
+    size_t total_capacity = 0;
+    char buf[10]; // Buffer for formatted sizes
+
+    printf("Arena Statistics:\n");
+    printf("-----------------\n");
+
+    while (current != NULL)
+    {
+        block_count++;
+        total_capacity += current->capacity;
+
+        size_t available_space = current->capacity - current->size;
+        format_size(current->size, buf, sizeof(buf));
+        printf("Block %d:\n", block_count);
+        printf("  Size: %s\n", buf);
+        format_size(current->capacity, buf, sizeof(buf));
+        printf("  Capacity: %s\n", buf);
+        format_size(available_space, buf, sizeof(buf));
+        printf("  Available Space: %s\n", buf);
+
+        current = current->next;
+    }
+
+    format_size(total_capacity, buf, sizeof(buf));
+    printf("\nTotal Blocks: %d\n", block_count);
+    printf("Total Capacity: %s\n", buf);
+
+    pthread_mutex_unlock(&arena->mutex); // Unlock the arena
 }

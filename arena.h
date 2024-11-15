@@ -26,3 +26,4 @@ void *init_arena(Arena *arena, size_t size);
 void grow_arena(Arena *arena, size_t size);
 void *allocate(Arena *arena, size_t size);
 void destroy(Arena *arena);
+void dump_arena_stats(Arena *arena);
