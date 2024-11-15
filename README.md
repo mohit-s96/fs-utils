@@ -33,7 +33,7 @@ fsc f . --file "hello.c" -nr
 ```sh
 fsc cp <source> <destination>
 ```
-- [ ] copy from source to destination. if destination don't exist it creates one.
+- [x] copy from source to destination. if destination don't exist it creates one.
 source can be file or directory
 
 ```sh
