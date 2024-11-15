@@ -144,6 +144,11 @@ int copy_dir_or_file(char *source, char *destination, bool flag, Arena *arena)
             }
         }
         dir = opendir(source);
+        if (dir == NULL)
+        {
+            fprintf(stderr, "Error opening directory\n");
+            return EXIT_FAILURE;
+        }
         flag = true;
         while ((d = readdir(dir)) != NULL)
         {
@@ -160,6 +165,7 @@ int copy_dir_or_file(char *source, char *destination, bool flag, Arena *arena)
                 }
             }
         }
+        closedir(dir);
     }
 
     return EXIT_SUCCESS;
