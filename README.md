@@ -1,10 +1,34 @@
-### program for some fs related things i like
+### File system related CLI utils with defaults that I like
 
-### TODOS
+#### Commands
+- _ls_: defaults to showing real directory size 1 level deep instead of the block size. default sorting by last modified time.
+- _f_: multi threaded find. recursive by default. supports simple patterns like `?`, `*` (not `[]` classes).
+- _cp_: multi threaded copy. mimics the unix `cp` in behavior.
+- _new_: one command for creating a file or a dir (`-d`) in the pwd.
+- _size_: total size of a directory. basically multi-threaded `du -sh`.
 
+Doesn't support unicode (yet).
+
+### Installation
+__Create executable__
+```sh
+make
+```
+
+__Install with the command name `fs`__
+```sh
+make install
+```
+
+__Run tests__
+```sh
+make test
+```
+
+### Development checklist
 - [x] Build a cli parser
 
-- [x] add and configure a test runner
+- [x] Add and configure a test runner
 
 ```sh
 fsc .
@@ -12,7 +36,7 @@ fsc .
 - [x] prints out the files, directories of the current (or any) directory. defaults
 to list view. has human readable sizes and permissions and date modified. default
 sorted by date modified. has the actual directory size instead of the block size.
-shows hidden files by default
+shows hidden files by default.
 ```sh
 fsc . -s -a
 ```
