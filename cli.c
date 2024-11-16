@@ -159,6 +159,13 @@ Cli_args *parse_cli(int argc, char **argv, Arena *arena)
         return args;
     }
 
+    if (argc == 2 && strcmp(argv[1], "size") == 0)
+    {
+        args->command = SIZE;
+        args->path = ".";
+        return args;
+    }
+
     commands command = get_command_type(argv[1]);
     args->command = command == UNSUPPORTED_COMMAND ? LS : command;
 
