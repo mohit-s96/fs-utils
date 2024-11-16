@@ -37,12 +37,6 @@ fsc cp <source> <destination>
 source can be file or directory
 
 ```sh
-fsc mv <source> <destination>
-```
-- [ ] move from source to destination. if destination don't exist it creates one.
-source can be file or directory
-
-```sh
 fsc new "file.txt"
 ```
 - [x] creates a file named "file.txt" in the current directory
