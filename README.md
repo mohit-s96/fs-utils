@@ -31,46 +31,46 @@ make test
 - [x] Add and configure a test runner
 
 ```sh
-fsc .
+fs .
 ```
 - [x] prints out the files, directories of the current (or any) directory. defaults
 to list view. has human readable sizes and permissions and date modified. default
 sorted by date modified. has the actual directory size instead of the block size.
 shows hidden files by default.
 ```sh
-fsc . -s -a
+fs . -s -a
 ```
 - [x] same as above but -s sorts by size and -a sorts alphabetically
 
 ```sh
-fsc f . --file "hello.c"
+fs f . --file "hello.c"
 ```
 - [x] means find and print full paths of any file in the current directory with name
 containing the string "hello.c". recursive by default. the name can also be a 
 pattern like "*.mp4" etc. maybe make search multi threaded??
 
 ```sh
-fsc f . --file "hello.c" -nr
+fs f . --file "hello.c" -nr
 ```
 - [x] nr means no recursion so only search the top-level dir
 
 ```sh
-fsc cp <source> <destination>
+fs cp <source> <destination>
 ```
 - [x] copy from source to destination. if destination don't exist it creates one.
 source can be file or directory
 
 ```sh
-fsc new "file.txt"
+fs new "file.txt"
 ```
 - [x] creates a file named "file.txt" in the current directory
 
 ```sh
-fsc new -d "my_dev"
+fs new -d "my_dev"
 ```
 - [x] creates a directory named "my_dev" in the current directory
 
 ```sh
-fsc size .
+fs size .
 ```
 - [x] gives the total space occupied on the disk by the current directory or file
