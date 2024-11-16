@@ -57,21 +57,6 @@ void quick_sort(void *arr, size_t size, int low, int high, int (*cmp)(const void
     }
 }
 
-int cmp_int(const void *a, const void *b)
-{
-    return (*(int *)a - *(int *)b);
-}
-
-int cmp_char(const void *a, const void *b)
-{
-    return (*(char *)a - *(char *)b);
-}
-
-int cmp_string(const void *a, const void *b)
-{
-    return strcmp(*(char **)a, *(char **)b);
-}
-
 bool is_symlink(mode_t mode)
 {
     return (mode & S_IFMT) == S_IFLNK;
