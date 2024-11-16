@@ -156,7 +156,11 @@ int command_ls(Cli_args *args, Arena *arena)
             stat_list[i].uid = sb.st_uid;
             stat_list[i].gid = sb.st_gid;
             stat_list[i].mode = sb.st_mode;
+#if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
             stat_list[i].last_modified = sb.st_mtimespec.tv_sec;
+#else
+            stat_list[i].last_modified = sb.st_mtime;
+#endif
             if ((sb.st_mode & S_IFMT) == S_IFDIR && !check_if_parent_dir(dir->d_name))
             {
                 unsigned long long s = get_dir_size(full_path, args->depth);
