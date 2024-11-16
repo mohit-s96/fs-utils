@@ -88,7 +88,7 @@ void *work_size(void *arg)
     struct stat st;
     char full_path[1024];
     char *path;
-    while ((path = dequeue()) != NULL)
+    while ((path = (char *)dequeue()) != NULL)
     {
         struct dirent *d;
         DIR *dir;

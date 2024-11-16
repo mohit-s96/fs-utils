@@ -20,7 +20,7 @@ void *work(void *arg)
 {
     WorkerArgs *worker_args = (WorkerArgs *)arg;
     char *path;
-    while ((path = dequeue()) != NULL)
+    while ((path = (char *)dequeue()) != NULL)
     {
         struct dirent *d;
         DIR *dir;

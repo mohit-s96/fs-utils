@@ -1,8 +1,9 @@
 #include "threads.h"
+#include <stdlib.h> // For malloc, free
 
 #define MAX_QUEUE_SIZE 10000
 
-static char *queue[MAX_QUEUE_SIZE];
+static void *queue[MAX_QUEUE_SIZE]; // Queue now stores `void *`
 static int queue_size = 0;
 static int active_tasks = 0;
 static bool flag = false, done = false;
@@ -11,20 +12,20 @@ static pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t queue_not_empty = PTHREAD_COND_INITIALIZER;
 static pthread_cond_t queue_not_full = PTHREAD_COND_INITIALIZER;
 
-void enqueue(char *path)
+void enqueue(void *item)
 {
     pthread_mutex_lock(&queue_mutex);
     while (queue_size == MAX_QUEUE_SIZE)
     {
         pthread_cond_wait(&queue_not_full, &queue_mutex);
     }
-    queue[queue_size++] = path;
+    queue[queue_size++] = item;
     active_tasks++;
     pthread_cond_signal(&queue_not_empty);
     pthread_mutex_unlock(&queue_mutex);
 }
 
-char *dequeue()
+void *dequeue()
 {
     pthread_mutex_lock(&queue_mutex);
     while (queue_size == 0 && !done)
@@ -36,76 +37,57 @@ char *dequeue()
         pthread_mutex_unlock(&queue_mutex);
         return NULL;
     }
-    char *path = queue[--queue_size];
+    void *item = queue[--queue_size];
     queue[queue_size] = NULL;
     pthread_cond_signal(&queue_not_full);
     pthread_mutex_unlock(&queue_mutex);
 
-    return path;
+    return item;
 }
 
-// Flag access functions
+// Flag and done setters and getters
 void set_flag(bool value)
 {
-    // pthread_mutex_lock(&queue_mutex);
     flag = value;
-    // pthread_mutex_unlock(&queue_mutex);
 }
 
 bool get_flag()
 {
-    // pthread_mutex_lock(&queue_mutex);
-    bool value = flag;
-    // pthread_mutex_unlock(&queue_mutex);
-    return value;
+    return flag;
 }
 
-// Done access functions
 void set_done(bool value)
 {
-    // pthread_mutex_lock(&queue_mutex);
     done = value;
-    // pthread_mutex_unlock(&queue_mutex);
 }
 
 bool get_done()
 {
-    // pthread_mutex_lock(&queue_mutex);
-    bool value = done;
-    // pthread_mutex_unlock(&queue_mutex);
-    return value;
+    return done;
 }
 
+// Queue size and active task management
 int get_queue_size()
 {
-    // pthread_mutex_lock(&queue_mutex);
-    int value = queue_size;
-    // pthread_mutex_unlock(&queue_mutex);
-    return value;
+    return queue_size;
 }
 
 void set_queue_size(int value)
 {
-    // pthread_mutex_lock(&queue_mutex);
     queue_size = value;
-    // pthread_mutex_unlock(&queue_mutex);
 }
 
 int get_active_tasks()
 {
-    // pthread_mutex_lock(&queue_mutex);
-    int value = active_tasks;
-    // pthread_mutex_unlock(&queue_mutex);
-    return value;
+    return active_tasks;
 }
 
 void set_active_tasks(int value)
 {
-    // pthread_mutex_lock(&queue_mutex);
     active_tasks = value;
-    // pthread_mutex_unlock(&queue_mutex);
 }
 
+// Synchronization primitives
 pthread_mutex_t *get_queue_mutex()
 {
     return &queue_mutex;
