@@ -1,5 +1,4 @@
 #include "threads.h"
-#include <stdlib.h> // For malloc, free
 
 #define MAX_QUEUE_SIZE 10000
 
