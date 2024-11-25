@@ -2,14 +2,14 @@
 
 #include <stdio.h>
 
-void print_red();
-void print_green();
-void print_yellow();
-void print_blue();
-void print_magenta();
-void print_cyan();
-void print_white();
-void print_bold();
-void print_underlined();
-void print_invisible();
-void print_reset();
+void print_red(int is_stdout);
+void print_green(int is_stdout);
+void print_yellow(int is_stdout);
+void print_blue(int is_stdout);
+void print_magenta(int is_stdout);
+void print_cyan(int is_stdout);
+void print_white(int is_stdout);
+void print_bold(int is_stdout);
+void print_underlined(int is_stdout);
+void print_invisible(int is_stdout);
+void print_reset(int is_stdout);

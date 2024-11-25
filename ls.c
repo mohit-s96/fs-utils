@@ -5,6 +5,7 @@
 #include <string.h>
 #include <pwd.h>
 #include <grp.h>
+#include <unistd.h>
 #include "utils.h"
 #include "cli.h"
 #include "colors.h"
@@ -36,26 +37,26 @@ int cmp_file_date(const void *a, const void *b)
     return ((FileStats *)b)->last_modified - ((FileStats *)a)->last_modified;
 }
 
-void print_name(FileStats *stats)
+void print_name(FileStats *stats, int should_print_color)
 {
     switch (stats->mode & S_IFMT)
     {
     case S_IFBLK:
     case S_IFCHR:
     case S_IFIFO:
-        print_bold();
+        print_bold(should_print_color);
         printf("%-30s", stats->name);
-        print_reset();
+        print_reset(should_print_color);
         break;
     case S_IFDIR:
-        print_cyan();
+        print_cyan(should_print_color);
         printf("%-30s", stats->name);
-        print_reset();
+        print_reset(should_print_color);
         break;
     case S_IFLNK:
-        print_blue();
+        print_blue(should_print_color);
         printf("%-30s", stats->name);
-        print_reset();
+        print_reset(should_print_color);
         break;
     case S_IFREG:
         printf("%-30s", stats->name);
@@ -71,6 +72,7 @@ void print_stats(FileStats *stats, unsigned int size)
     printf("Total %d\n", size);
     char buffer[10];
     char s[100];
+    int should_print_color = isatty(fileno(stdout));
     for (int i = 0; i < size; i++)
     {
         char *uname = get_user_name_from_uid(stats[i].uid);
@@ -81,7 +83,7 @@ void print_stats(FileStats *stats, unsigned int size)
 
         printf("%-6s %-8s %-8s %-10s %-25s", stats[i].permissions, uname, gname, buffer, s);
 
-        print_name(&stats[i]);
+        print_name(&stats[i], should_print_color);
         printf("\n");
     }
 }

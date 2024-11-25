@@ -14,6 +14,7 @@ typedef struct
     Arena *arena;
     int id;
     bool no_recurse;
+    int is_stdout;
 } WorkerArgs;
 
 void *work(void *arg)
@@ -41,12 +42,12 @@ void *work(void *arg)
                 set_flag(true);
                 if (is_dir)
                 {
-                    print_cyan();
+                    print_cyan(worker_args->is_stdout);
                 }
                 printf("%s/%s\n", path, dir_name);
                 if (is_dir)
                 {
-                    print_reset();
+                    print_reset(worker_args->is_stdout);
                 }
             }
             if (is_dir && !worker_args->no_recurse && !check_if_parent_dir(dir_name))
@@ -93,9 +94,11 @@ int command_find(Cli_args *args, Arena *arena)
         return EXIT_FAILURE;
     }
 
+    int should_print_color = isatty(fileno(stdout));
+
     enqueue(args->path);
 
-    WorkerArgs worker_args = {.arena = arena, .search_pattern = args->search_pattern, .no_recurse = args->no_recurse};
+    WorkerArgs worker_args = {.arena = arena, .search_pattern = args->search_pattern, .no_recurse = args->no_recurse, .is_stdout = should_print_color};
     worker_args.arena = arena;
     worker_args.search_pattern = args->search_pattern;
     for (int i = 0; i < number_of_processors; i++)
