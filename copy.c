@@ -134,6 +134,15 @@ void *work_copy(void *arg)
 
         if (!is_source_dir)
         {
+            if (check_if_parent_dir(destination))
+            {
+                parent_path_from_child(source, strlen(source), &t, arena);
+                if (t.child != NULL)
+                {
+                    is_dest_dir = false;
+                    destination = join_paths(destination, t.child, arena);
+                }
+            }
             FILE *f_source = fopen(source, "rb");
             FILE *f_dest = is_dest_dir ? fopen(join_paths(destination, source, arena), "wb") : fopen(destination, "wb");
             int success = copy_file(f_source, f_dest);
