@@ -100,12 +100,13 @@ static void copy_empty_destination_success(void **state)
 
 static void new_file_success(void **state)
 {
-    char *argv[] = {"fsc", "new", "hello.c"};
-    int argc = 3;
+    char *argv[] = {"fsc", "new", "hello.c", "main.js"};
+    int argc = 4;
     Cli_args *args = parse_cli(argc, argv, &arena);
     assert_int_equal(NEW, args->command);
-    assert_string_equal("hello.c", args->new_file_name);
-    assert_true(NULL == args->new_dir_name);
+    assert_string_equal("hello.c", args->new_file_name[0]);
+    assert_string_equal("main.js", args->new_file_name[1]);
+    assert_true(NULL == args->new_dir_name[0]);
 }
 
 static void new_dir_success(void **state)
@@ -114,8 +115,8 @@ static void new_dir_success(void **state)
     int argc = 4;
     Cli_args *args = parse_cli(argc, argv, &arena);
     assert_int_equal(NEW, args->command);
-    assert_string_equal("hello", args->new_dir_name);
-    assert_true(NULL == args->new_file_name);
+    assert_string_equal("hello", args->new_dir_name[0]);
+    assert_true(NULL == args->new_file_name[0]);
 }
 
 static void stat_success(void **state)
