@@ -134,7 +134,8 @@ void *work_copy(void *arg)
 
         if (!is_source_dir)
         {
-            if (check_if_parent_dir(destination))
+            bool is_dest_parent_or_current = check_if_parent_dir(destination);
+            if (is_dest_parent_or_current || (is_dest_dir && !is_dest_parent_or_current))
             {
                 parent_path_from_child(source, strlen(source), &t, arena);
                 if (t.child != NULL)

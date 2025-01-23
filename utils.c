@@ -80,8 +80,25 @@ void *work_size(void *arg)
         dir = opendir(path);
         if (dir == NULL)
         {
+            if (errno == ENOENT)
+            {
+                fprintf(stderr, "Directory not found: %s\n", path);
+            }
+            if (errno == EACCES)
+            {
+                fprintf(stderr, "Permission denied: %s\n", path);
+            }
+            if (errno == EPERM)
+            {
+                fprintf(stderr, "Operation not permitted: %s\n", path);
+            }
             pthread_mutex_lock(get_queue_mutex());
             set_active_tasks(get_active_tasks() - 1); // Decrement active tasks if directory open fails
+            if (get_active_tasks() == 0 && get_queue_size() == 0)
+            {
+                set_done(true);
+                pthread_cond_broadcast(get_not_empty_condition()); // Notify all waiting threads
+            }
             pthread_mutex_unlock(get_queue_mutex());
             continue;
         }
@@ -394,4 +411,34 @@ char *parse_special_dir(char *path, int length)
         return "..";
 
     return NULL;
+}
+
+void print_help(char *name)
+{
+    printf("Usage: ./%s [command] [options] [path]\n\n", name);
+
+    printf("Commands:\n");
+    printf("  ls    - List directory contents\n");
+    printf("  f     - Find files and directories\n");
+    printf("  cp    - Copy files and directories\n");
+    printf("  mv    - Move files and directories\n");
+    printf("  new   - Create new files and directories\n");
+    printf("  size  - Get the size of a file or directory\n\n");
+
+    printf("Options:\n");
+    printf("  -s            - Sort by size\n");
+    printf("  -a            - Sort by name\n");
+    printf("  -nr           - No recursion\n");
+    printf("  --file|-p     - Search pattern\n");
+    printf("  --depth       - Maximum depth\n");
+    printf("  -d            - Create directory instead of file with 'new'\n\n");
+
+    printf("Examples:\n");
+    printf("  %s ls -s /sorts/by/size\n", name);
+    printf("  %s ls -a /sorts/by/name\n", name);
+    printf("  %s f /path/to/directory -p pattern\n", name);
+    printf("  %s cp /path/to/source /path/to/destination\n", name);
+    printf("  %s new /path/to/file1 /path/to/file2\n", name);
+    printf("  %s new -d /path/to/directory1 /path/to/directory2\n", name);
+    printf("  %s size /path/to/file\n", name);
 }

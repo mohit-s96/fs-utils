@@ -69,10 +69,15 @@ void print_name(FileStats *stats, int should_print_color)
 
 void print_stats(FileStats *stats, unsigned int size)
 {
-    printf("Total %d\n", size);
+    int should_print_color = isatty(fileno(stdout));
+    int should_print_total = isatty(fileno(stdin));
+    // messes with the output when piped
+    if (should_print_total)
+    {
+        printf("Total %d\n", size);
+    }
     char buffer[10];
     char s[100];
-    int should_print_color = isatty(fileno(stdout));
     for (int i = 0; i < size; i++)
     {
         char *uname = get_user_name_from_uid(stats[i].uid);

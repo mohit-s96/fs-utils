@@ -26,3 +26,4 @@ char *duplicate_string(char *str, Arena *arena);
 Tuple *parent_path_from_child(char *path, size_t length, Tuple *t, Arena *arena);
 bool str_ends_with_char(char *str, int length, char ch);
 char *parse_special_dir(char *path, int length);
+void print_help(char *name);

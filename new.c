@@ -3,25 +3,36 @@
 
 int command_new(Cli_args *args, Arena *arena)
 {
-    if (args->new_dir_name)
+    bool is_dir_command = args->new_dir_name[0] != NULL;
+    bool is_file_command = args->new_file_name[0] != NULL;
+    int success;
+    if (is_dir_command)
     {
-        int success = mkdir(join_paths(".", args->new_dir_name, arena), 0700);
-        if (success != 0)
+        for (int i = 0; i < args->num_dir_or_files; i++)
         {
-            fprintf(stderr, "Error creating directory\n");
-            return EXIT_FAILURE;
+            success = mkdir(args->new_dir_name[i], 0700);
+            if (success != 0)
+            {
+                fprintf(stderr, "Error creating directory: %s\n", args->new_dir_name[i]);
+                return EXIT_FAILURE;
+            }
         }
         return EXIT_SUCCESS;
     }
-    if (args->new_file_name)
+    if (is_file_command)
     {
-        FILE *file = fopen(join_paths(".", args->new_file_name, arena), "wx");
-        if (file == NULL)
+
+        for (int i = 0; i < args->num_dir_or_files; i++)
         {
-            fprintf(stderr, "Error creating file\n");
-            return EXIT_FAILURE;
+
+            FILE *file = fopen(args->new_file_name[i], "wx");
+            if (file == NULL)
+            {
+                fprintf(stderr, "Error creating file: %s\n", args->new_file_name[i]);
+                return EXIT_FAILURE;
+            }
+            fclose(file);
         }
-        fclose(file);
         return EXIT_SUCCESS;
     }
     return EXIT_FAILURE;

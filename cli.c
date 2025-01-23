@@ -59,7 +59,7 @@ void parse_options(Cli_args *args, int argc, char **argv, int *start_at)
         {
             args->no_recurse = true;
         }
-        if (0 == strcmp(input, "--file"))
+        if ((0 == strcmp(input, "--file")) || (0 == strcmp(input, "-p")))
         {
             if (*start_at + 1 < argc)
             {
@@ -75,10 +75,13 @@ void parse_options(Cli_args *args, int argc, char **argv, int *start_at)
         }
         if (0 == strcmp(input, "-d"))
         {
-            if (*start_at + 1 < argc)
+            int32_t i = 0;
+            while (*start_at + 1 < argc && i < MAX_CLI_ARGS)
             {
-                args->new_dir_name = argv[(*start_at) + 1];
+                args->new_dir_name[i++] = argv[(*start_at) + 1];
+                (*start_at)++;
             }
+            args->num_dir_or_files = i;
         }
 
         (*start_at)++;
@@ -104,7 +107,14 @@ int parse_find(Cli_args *args, int argc, char **argv, int start_at)
 {
     if (start_at < argc)
     {
-        args->path = argv[start_at];
+        if (strcmp("--file", argv[start_at]) == 0 || strcmp("-p", argv[start_at]) == 0)
+        {
+            args->path = ".";
+        }
+        else
+        {
+            args->path = argv[start_at];
+        }
     }
     parse_options(args, argc, argv, &start_at);
     return 0;
@@ -129,9 +139,14 @@ int parse_new(Cli_args *args, int argc, char **argv, int start_at)
     parse_options(args, argc, argv, &start_at);
     if (start < argc)
     {
-        if (!args->new_dir_name)
+        if (args->num_dir_or_files == 0)
         {
-            args->new_file_name = argv[start];
+            int32_t i = 0;
+            while (start < argc && i < MAX_CLI_ARGS)
+            {
+                args->new_file_name[i++] = argv[start++];
+            }
+            args->num_dir_or_files = i;
         }
     }
     return 0;

@@ -5,6 +5,7 @@
 #include "cli.h"
 #include "commands.h"
 #include "arena.h"
+#include "utils.h"
 
 #define ONE_MEG 1024 * 1024
 
@@ -14,7 +15,15 @@ int main(int argc, char **argv)
     init_arena(&arena, ONE_MEG);
     Cli_args *args = parse_cli(argc, argv, &arena);
     int exit_code = EXIT_SUCCESS;
-    if (args->command == LS)
+    if (argc == 2 && (strcmp(argv[1], "help") == 0 ||
+                      strcmp(argv[1], "--help") == 0 ||
+                      strcmp(argv[1], "-help") == 0 ||
+                      strcmp(argv[1], "-h") == 0))
+    {
+        print_help(argv[0]);
+    }
+
+    else if (args->command == LS)
         exit_code = command_ls(args, &arena);
     else if (args->command == F)
         exit_code = command_find(args, &arena);
