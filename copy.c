@@ -170,8 +170,9 @@ void *work_copy(void *arg)
             {
                 if (special_dir == NULL)
                 {
+                    char *child = parent_path_from_child(source, strlen(source), &t, arena)->child;
                     destination = !worker_args->flag
-                                      ? join_paths(destination, parent_path_from_child(source, strlen(source), &t, arena)->child, arena)
+                                      ? join_paths(destination, child != NULL ? child : source, arena)
                                       : destination;
                     int success = mkdir(destination, 0700);
                     if (success != 0 && errno != EEXIST)
