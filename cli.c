@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "cli.h"
 #include "utils.h"
 
@@ -171,22 +172,25 @@ Cli_args *parse_cli(int argc, char **argv, Arena *arena)
 {
     Cli_args *args = (void *)allocate(arena, sizeof(Cli_args));
     args->depth = 1;
+    char *path = (char *)allocate(arena, sizeof(char) * 4096);
 
-    if (argc == 1)
+    bool piped = isatty(fileno(stdin)) == 0;
+
+    if (argc == 1 && !piped)
     {
         args->command = LS;
         args->path = ".";
         return args;
     }
 
-    if (argc == 2 && strcmp(argv[1], "size") == 0)
+    if (argc == 2 && strcmp(argv[1], "size") == 0 && !piped)
     {
         args->command = SIZE;
         args->path = ".";
         return args;
     }
 
-    commands command = get_command_type(argv[1]);
+    commands command = argc > 1 ? get_command_type(argv[1]) : UNSUPPORTED_COMMAND;
     args->command = command == UNSUPPORTED_COMMAND ? LS : command;
 
     int start_at = command == UNSUPPORTED_COMMAND ? 1 : 2;
@@ -198,6 +202,16 @@ Cli_args *parse_cli(int argc, char **argv, Arena *arena)
             command_table[i].parser(args, argc, argv, start_at);
             break;
         }
+    }
+
+    if (piped)
+    {
+        if (fgets(path, sizeof(char) * 4096, stdin))
+        {
+            /* strip trailing newline if present */
+            path[strcspn(path, "\n")] = '\0';
+        }
+        args->path = path;
     }
 
     if (args->depth < 0)
