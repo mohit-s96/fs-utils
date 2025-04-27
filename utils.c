@@ -432,6 +432,7 @@ void print_help(char *name)
     printf("  --file|-p     - Search pattern\n");
     printf("  --depth       - Maximum depth\n");
     printf("  -d            - Create directory instead of file with 'new'\n\n");
+    printf("  -c            - Compact mode for ls\n");
 
     printf("Examples:\n");
     printf("  %s ls -s /sorts/by/size\n", name);

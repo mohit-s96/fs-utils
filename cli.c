@@ -84,6 +84,11 @@ void parse_options(Cli_args *args, int argc, char **argv, int *start_at)
             args->num_dir_or_files = i;
         }
 
+        if (0 == strcmp(input, "-c"))
+        {
+            args->compact = true;
+        }
+
         (*start_at)++;
     }
 }

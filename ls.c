@@ -37,7 +37,7 @@ int cmp_file_date(const void *a, const void *b)
     return ((FileStats *)b)->last_modified - ((FileStats *)a)->last_modified;
 }
 
-void print_name(FileStats *stats, int should_print_color)
+void print_name(FileStats *stats, int should_print_color, bool compact)
 {
     switch (stats->mode & S_IFMT)
     {
@@ -45,29 +45,29 @@ void print_name(FileStats *stats, int should_print_color)
     case S_IFCHR:
     case S_IFIFO:
         print_bold(should_print_color);
-        printf("%-30s", stats->name);
+        printf(compact ? "%s" : "%-30s", stats->name);
         print_reset(should_print_color);
         break;
     case S_IFDIR:
         print_cyan(should_print_color);
-        printf("%-30s", stats->name);
+        printf(compact ? "%s" : "%-30s", stats->name);
         print_reset(should_print_color);
         break;
     case S_IFLNK:
         print_blue(should_print_color);
-        printf("%-30s", stats->name);
+        printf(compact ? "%s" : "%-30s", stats->name);
         print_reset(should_print_color);
         break;
     case S_IFREG:
-        printf("%-30s", stats->name);
+        printf(compact ? "%s" : "%-30s", stats->name);
         break;
     default:
-        printf("%-30s", stats->name);
+        printf(compact ? "%s" : "%-30s", stats->name);
         break;
     }
 }
 
-void print_stats(FileStats *stats, unsigned int size)
+void print_stats(FileStats *stats, unsigned int size, bool compact)
 {
     int should_print_color = isatty(fileno(stdout));
     int should_print_total = isatty(fileno(stdin));
@@ -80,6 +80,12 @@ void print_stats(FileStats *stats, unsigned int size)
     char s[100];
     for (int i = 0; i < size; i++)
     {
+        if (compact)
+        {
+            print_name(&stats[i], should_print_color, true);
+            printf("\n");
+            continue;
+        }
         char *uname = get_user_name_from_uid(stats[i].uid);
         char *gname = get_group_name_from_gid(stats[i].gid);
         format_size(stats[i].size, buffer, sizeof(buffer));
@@ -88,7 +94,7 @@ void print_stats(FileStats *stats, unsigned int size)
 
         printf("%-6s %-8s %-8s %-10s %-25s", stats[i].permissions, uname, gname, buffer, s);
 
-        print_name(&stats[i], should_print_color);
+        print_name(&stats[i], should_print_color, false);
         printf("\n");
     }
 }
@@ -113,6 +119,10 @@ int get_dir_item_count(char *path)
 int command_ls(Cli_args *args, Arena *arena)
 {
     char *path = args->path;
+    if (args->compact)
+    {
+        args->sort_by_name = true;
+    }
     bool sort_by_size = args->sort_by_size;
     bool sort_by_name = args->sort_by_name;
 
@@ -134,7 +144,7 @@ int command_ls(Cli_args *args, Arena *arena)
         stat_list->name = path;
         stat_list->permissions = get_user_permissions(sb.st_mode, arena);
 
-        print_stats(stat_list, 1);
+        print_stats(stat_list, 1, args->compact);
         return EXIT_SUCCESS;
     }
 
@@ -193,6 +203,6 @@ int command_ls(Cli_args *args, Arena *arena)
     {
         quick_sort(stat_list, sizeof(FileStats), 0, num_items - 1, cmp_file_date);
     }
-    print_stats(stat_list, num_items);
+    print_stats(stat_list, num_items, args->compact);
     return EXIT_SUCCESS;
 }

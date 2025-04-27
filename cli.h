@@ -31,6 +31,7 @@ typedef struct
     bool sort_by_size;
     bool sort_by_name;
     bool no_recurse;
+    bool compact;
 } Cli_args;
 
 commands get_command_type(char *command);
