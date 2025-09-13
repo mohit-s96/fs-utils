@@ -5,6 +5,7 @@
 #include "commands.h"
 #include "utils.h"
 #include "threads.h"
+#include "pattern.h"
 
 typedef struct
 {
@@ -237,101 +238,6 @@ void *work_copy(void *arg)
     return NULL;
 }
 
-int copy_dir_or_file_recursive(char *source, char *destination, bool flag, Arena *arena)
-{
-    struct stat st_source, st_dest;
-    Tuple t = {0};
-    struct dirent *d;
-    DIR *dir;
-    bool dir_name_provided = false;
-    if (lstat(source, &st_source) != 0)
-    {
-        fprintf(stderr, "Error: Invalid source: %s\n", source);
-        return EXIT_FAILURE;
-    }
-    if (lstat(destination, &st_dest) != 0)
-    {
-        parent_path_from_child(destination, strlen(destination), &t, arena);
-        dir_name_provided = is_parent_dir_valid(t.parent);
-        if (!dir_name_provided)
-        {
-            fprintf(stderr, "Error: Invalid destination: %s\n", destination);
-            return EXIT_FAILURE;
-        }
-    }
-
-    bool is_source_dir = (st_source.st_mode & S_IFMT) == S_IFDIR;
-    bool is_dest_dir = (st_dest.st_mode & S_IFMT) == S_IFDIR;
-
-    if (is_source_dir && !is_dest_dir && !dir_name_provided)
-    {
-        fprintf(stderr, "Error: Can't copy directory to a file\n");
-        return EXIT_FAILURE;
-    }
-
-    if (strcmp(source, destination) == 0)
-    {
-        fprintf(stderr, "Error: Source and destination are identical\n");
-        return EXIT_FAILURE;
-    }
-
-    if (!is_source_dir)
-    {
-        FILE *f_source = fopen(source, "rb");
-        FILE *f_dest = is_dest_dir ? fopen(join_paths(destination, source, arena), "wb") : fopen(destination, "wb");
-        return copy_file(f_source, f_dest);
-    }
-    else
-    {
-        char *special_dir = parse_special_dir(source, strlen(source));
-        if (dir_name_provided)
-        {
-            int success = mkdir(destination, 0700);
-            if (success != 0)
-            {
-                fprintf(stderr, "Error copying directory\n");
-                return EXIT_FAILURE;
-            }
-        }
-        else
-        {
-            if (special_dir == NULL)
-            {
-                destination = !flag
-                                  ? join_paths(destination, parent_path_from_child(source, strlen(source), &t, arena)->child, arena)
-                                  : destination;
-                int success = mkdir(destination, 0700);
-                if (success != 0 && errno != EEXIST)
-                {
-                    fprintf(stderr, "Error copying directory\n");
-                    return EXIT_FAILURE;
-                }
-            }
-        }
-        dir = opendir(source);
-        if (dir == NULL)
-        {
-            fprintf(stderr, "Error opening directory\n");
-            return EXIT_FAILURE;
-        }
-        flag = true;
-        while ((d = readdir(dir)) != NULL)
-        {
-            if (!check_if_parent_dir(d->d_name))
-            {
-                int status = copy_dir_or_file_recursive(join_paths(source, d->d_name, arena), join_paths(destination, d->d_name, arena), flag, arena);
-                if (status != EXIT_SUCCESS)
-                {
-                    return EXIT_FAILURE;
-                }
-            }
-        }
-        closedir(dir);
-    }
-
-    return EXIT_SUCCESS;
-}
-
 int copy_dir_or_file_threaded(char *source, char *destination, Arena *arena)
 {
     long number_of_processors = sysconf(_SC_NPROCESSORS_ONLN);
@@ -366,11 +272,23 @@ int copy_dir_or_file_threaded(char *source, char *destination, Arena *arena)
     return args.exit_code;
 }
 
+// TODO: Implement pattern matching for copy
+
+// int copy_dir_or_file_threaded_pattern(char *source, char *destination, Arena *arena)
+// {
+//     long number_of_processors = sysconf(_SC_NPROCESSORS_ONLN);
+//     pthread_t threads[number_of_processors];
+//     pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+//     WorkerArgs args = {.arena = arena, .exit_code = 0, .flag = false, .mutex = &mutex};
+//     DIR *d;
+//     struct dirent *dir;
+// }
+
 int command_copy(Cli_args *args, Arena *arena)
 {
     char *source = args->source;
     char *destination = args->destination;
 
     return copy_dir_or_file_threaded(source, destination, arena);
-    // return copy_dir_or_file_recursive(source, destination, false, arena);
 }
