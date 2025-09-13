@@ -17,16 +17,15 @@ typedef struct
     Arena *arena;
 } WorkerArgs;
 
-void swap(void *a, void *b, int size)
+void swap(void *a, void *b, int size, Arena *arena)
 {
-    char *temp = (char *)malloc(size);
+    char *temp = (char *)allocate(arena, size);
     memcpy(temp, a, size);
     memcpy(a, b, size);
     memcpy(b, temp, size);
-    free(temp);
 }
 
-int partition(void *arr, size_t size, int low, int high, int (*cmp)(const void *, const void *))
+int partition(void *arr, size_t size, int low, int high, int (*cmp)(const void *, const void *), Arena *arena)
 {
     char *array = (char *)arr;
     // last element pivot
@@ -39,21 +38,21 @@ int partition(void *arr, size_t size, int low, int high, int (*cmp)(const void *
         if (cmp(array + j * size, pivot) <= 0)
         {
             i++;
-            swap(array + i * size, array + j * size, size);
+            swap(array + i * size, array + j * size, size, arena);
         }
     }
     i++;
-    swap(array + i * size, pivot, size);
+    swap(array + i * size, pivot, size, arena);
     return i;
 }
 
-void quick_sort(void *arr, size_t size, int low, int high, int (*cmp)(const void *, const void *))
+void quick_sort(void *arr, size_t size, int low, int high, int (*cmp)(const void *, const void *), Arena *arena)
 {
     if (low < high)
     {
-        int pivot = partition(arr, size, low, high, cmp);
-        quick_sort(arr, size, low, pivot - 1, cmp);
-        quick_sort(arr, size, pivot + 1, high, cmp);
+        int pivot = partition(arr, size, low, high, cmp, arena);
+        quick_sort(arr, size, low, pivot - 1, cmp, arena);
+        quick_sort(arr, size, pivot + 1, high, cmp, arena);
     }
 }
 
@@ -411,6 +410,23 @@ char *parse_special_dir(char *path, int length)
         return "..";
 
     return NULL;
+}
+
+int get_dir_item_count(char *path)
+{
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(path);
+    int i = 0;
+    if (d)
+    {
+        while ((dir = readdir(d)) != NULL)
+        {
+            i++;
+        }
+        closedir(d);
+    }
+    return i;
 }
 
 void print_help(char *name)

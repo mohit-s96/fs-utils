@@ -11,7 +11,7 @@ typedef struct
     char *child;
 } Tuple;
 
-void quick_sort(void *arr, size_t size, int low, int high, int (*cmp)(const void *, const void *));
+void quick_sort(void *arr, size_t size, int low, int high, int (*cmp)(const void *, const void *), Arena *arena);
 bool is_symlink(mode_t mode);
 long long get_dir_size(const char *path, int max_depth);
 long long get_dir_size_threaded(char *path, int max_depth, Arena *arena);
@@ -27,3 +27,4 @@ Tuple *parent_path_from_child(char *path, size_t length, Tuple *t, Arena *arena)
 bool str_ends_with_char(char *str, int length, char ch);
 char *parse_special_dir(char *path, int length);
 void print_help(char *name);
+int get_dir_item_count(char *path);
