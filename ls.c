@@ -24,7 +24,14 @@ typedef struct
 
 int cmp_file_size(const void *a, const void *b)
 {
-    return ((FileStats *)b)->size - ((FileStats *)a)->size;
+    unsigned long long size_a = ((FileStats *)a)->size;
+    unsigned long long size_b = ((FileStats *)b)->size;
+
+    if (size_a < size_b)
+        return 1;
+    if (size_a > size_b)
+        return -1;
+    return 0;
 }
 
 int cmp_file_name(const void *a, const void *b)
@@ -34,7 +41,14 @@ int cmp_file_name(const void *a, const void *b)
 
 int cmp_file_date(const void *a, const void *b)
 {
-    return ((FileStats *)b)->last_modified - ((FileStats *)a)->last_modified;
+    long mod_a = ((FileStats *)a)->last_modified;
+    long mod_b = ((FileStats *)b)->last_modified;
+
+    if (mod_a < mod_b)
+        return 1;
+    if (mod_a > mod_b)
+        return -1;
+    return 0;
 }
 
 void print_name(FileStats *stats, int should_print_color, bool compact)
@@ -99,23 +113,6 @@ void print_stats(FileStats *stats, unsigned int size, bool compact)
     }
 }
 
-int get_dir_item_count(char *path)
-{
-    DIR *d;
-    struct dirent *dir;
-    d = opendir(path);
-    int i = 0;
-    if (d)
-    {
-        while ((dir = readdir(d)) != NULL)
-        {
-            i++;
-        }
-        closedir(d);
-    }
-    return i;
-}
-
 int command_ls(Cli_args *args, Arena *arena)
 {
     char *path = args->path;
@@ -143,6 +140,12 @@ int command_ls(Cli_args *args, Arena *arena)
         stat_list->mode = sb.st_mode;
         stat_list->name = path;
         stat_list->permissions = get_user_permissions(sb.st_mode, arena);
+
+#if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
+        stat_list->last_modified = sb.st_mtimespec.tv_sec;
+#else
+        stat_list->last_modified = sb.st_mtime;
+#endif
 
         print_stats(stat_list, 1, args->compact);
         return EXIT_SUCCESS;
@@ -193,15 +196,15 @@ int command_ls(Cli_args *args, Arena *arena)
     }
     if (sort_by_size)
     {
-        quick_sort(stat_list, sizeof(FileStats), 0, num_items - 1, cmp_file_size);
+        quick_sort(stat_list, sizeof(FileStats), 0, num_items - 1, cmp_file_size, arena);
     }
     else if (sort_by_name)
     {
-        quick_sort(stat_list, sizeof(FileStats), 0, num_items - 1, cmp_file_name);
+        quick_sort(stat_list, sizeof(FileStats), 0, num_items - 1, cmp_file_name, arena);
     }
     else
     {
-        quick_sort(stat_list, sizeof(FileStats), 0, num_items - 1, cmp_file_date);
+        quick_sort(stat_list, sizeof(FileStats), 0, num_items - 1, cmp_file_date, arena);
     }
     print_stats(stat_list, num_items, args->compact);
     return EXIT_SUCCESS;
