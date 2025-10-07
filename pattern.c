@@ -1,6 +1,7 @@
 #include "pattern.h"
+#include <ctype.h>
 
-bool match_pattern(char *pattern, char *input)
+bool match_pattern(char *pattern, char *input, bool ignore_case)
 {
     while (*pattern != '\0' && *input != '\0')
     {
@@ -11,11 +12,24 @@ bool match_pattern(char *pattern, char *input)
             input++;
             break;
         case '*':
-            if (match_pattern(pattern + 1, input))
+            if (match_pattern(pattern + 1, input, ignore_case))
                 return true;
             input++;
             break;
         default:
+            if (ignore_case)
+            {
+                if (tolower((unsigned char)*pattern) == tolower((unsigned char)*input))
+                {
+                    pattern++;
+                    input++;
+                    break;
+                }
+                else
+                {
+                    return false;
+                }
+            }
             if (*pattern == *input)
             {
                 pattern++;

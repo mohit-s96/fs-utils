@@ -431,7 +431,7 @@ int get_dir_item_count(char *path)
 
 void print_help(char *name)
 {
-    printf("Usage: ./%s [command] [options] [path]\n\n", name);
+    printf("Usage: %s [command] [options] [path]\n\n", name);
 
     printf("Commands:\n");
     printf("  ls    - List directory contents\n");

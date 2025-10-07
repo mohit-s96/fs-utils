@@ -2,4 +2,4 @@
 
 #include <stdbool.h>
 
-bool match_pattern(char *pattern, char *input);
+bool match_pattern(char *pattern, char *input, bool ignore_case);

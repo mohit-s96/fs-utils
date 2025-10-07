@@ -11,10 +11,11 @@
 typedef struct
 {
     char *search_pattern;
-    Arena *arena;
-    int id;
     bool no_recurse;
+    bool ignore_case;
+    int id;
     int is_stdout;
+    Arena *arena;
 } WorkerArgs;
 
 void *work(void *arg)
@@ -37,7 +38,7 @@ void *work(void *arg)
         {
             bool is_dir = d->d_type == DT_DIR;
             char *dir_name = d->d_name;
-            if (match_pattern(worker_args->search_pattern, dir_name))
+            if (match_pattern(worker_args->search_pattern, dir_name, worker_args->ignore_case))
             {
                 set_flag(true);
                 if (is_dir)
@@ -98,7 +99,7 @@ int command_find(Cli_args *args, Arena *arena)
 
     enqueue(args->path);
 
-    WorkerArgs worker_args = {.arena = arena, .search_pattern = args->search_pattern, .no_recurse = args->no_recurse, .is_stdout = should_print_color};
+    WorkerArgs worker_args = {.arena = arena, .search_pattern = args->search_pattern, .no_recurse = args->no_recurse, .is_stdout = should_print_color, .ignore_case = args->ignore_case};
     worker_args.arena = arena;
     worker_args.search_pattern = args->search_pattern;
     for (int i = 0; i < number_of_processors; i++)
