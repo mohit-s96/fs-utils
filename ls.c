@@ -141,10 +141,12 @@ int command_ls(Cli_args *args, Arena *arena)
         stat_list->name = path;
         stat_list->permissions = get_user_permissions(sb.st_mode, arena);
 
-#if !defined(_POSIX_C_SOURCE) && defined(_DARWIN_C_SOURCE)
+#if defined(__APPLE__)
         stat_list->last_modified = sb.st_mtimespec.tv_sec;
-#else
+#elif defined(__linux__)
         stat_list->last_modified = sb.st_mtime;
+#else
+        printf("Hello from an unknown or generic platform!\n");
 #endif
 
         print_stats(stat_list, 1, args->compact);
