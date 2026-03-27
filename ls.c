@@ -146,7 +146,8 @@ int command_ls(Cli_args *args, Arena *arena)
 #elif defined(__linux__)
         stat_list->last_modified = sb.st_mtime;
 #else
-        printf("Hello from an unknown or generic platform!\n");
+        // unknown platform, default to mtime
+        stat_list->last_modified = sb.st_mtime;
 #endif
 
         print_stats(stat_list, 1, args->compact);
@@ -178,9 +179,17 @@ int command_ls(Cli_args *args, Arena *arena)
             stat_list[i].uid = sb.st_uid;
             stat_list[i].gid = sb.st_gid;
             stat_list[i].mode = sb.st_mode;
-#if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
+// #if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
+//             stat_list[i].last_modified = sb.st_mtimespec.tv_sec;
+// #else
+//             stat_list[i].last_modified = sb.st_mtime;
+// #endif
+#if defined(__APPLE__)
             stat_list[i].last_modified = sb.st_mtimespec.tv_sec;
+#elif defined(__linux__)
+            stat_list[i].last_modified = sb.st_mtime;
 #else
+            // unknown platform, default to mtime
             stat_list[i].last_modified = sb.st_mtime;
 #endif
             if ((sb.st_mode & S_IFMT) == S_IFDIR && !check_if_parent_dir(dir->d_name))
