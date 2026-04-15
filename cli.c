@@ -222,5 +222,10 @@ Cli_args *parse_cli(int argc, char **argv, Arena *arena)
         args->depth = 1;
     }
 
+    if (args->compact)
+    {
+        args->depth = 0;
+    }
+
     return args;
 }
