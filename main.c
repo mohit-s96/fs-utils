@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include "cli.h"
@@ -33,6 +34,8 @@ int main(int argc, char **argv)
         exit_code = command_size(args, &arena);
     else if (args->command == CP)
         exit_code = command_copy(args, &arena);
+    else if (args->command == MV)
+        exit_code = command_move(args, &arena);
     else
     {
         exit_code = EXIT_FAILURE;

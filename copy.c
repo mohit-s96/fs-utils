@@ -272,6 +272,76 @@ int copy_dir_or_file_threaded(char *source, char *destination, Arena *arena)
     return args.exit_code;
 }
 
+char *resolve_move_destination(char *source, char *destination, Arena *arena)
+{
+    struct stat st_dest;
+    Tuple t = {0};
+    bool destination_exists = lstat(destination, &st_dest) == 0;
+    bool destination_is_dir = destination_exists && (st_dest.st_mode & S_IFMT) == S_IFDIR;
+    bool destination_is_parent_or_current = check_if_parent_dir(destination) || parse_special_dir(destination, strlen(destination)) != NULL;
+
+    if (!destination_is_dir && !destination_is_parent_or_current)
+    {
+        return destination;
+    }
+
+    parent_path_from_child(source, strlen(source), &t, arena);
+    return join_paths(destination, t.child != NULL ? t.child : source, arena);
+}
+
+int remove_path_recursive(char *path, Arena *arena)
+{
+    struct stat st;
+    if (lstat(path, &st) != 0)
+    {
+        perror("stat");
+        return EXIT_FAILURE;
+    }
+
+    if ((st.st_mode & S_IFMT) != S_IFDIR || is_symlink(st.st_mode))
+    {
+        if (unlink(path) != 0)
+        {
+            perror("unlink");
+            return EXIT_FAILURE;
+        }
+        return EXIT_SUCCESS;
+    }
+
+    DIR *dir = opendir(path);
+    if (dir == NULL)
+    {
+        perror("opendir");
+        return EXIT_FAILURE;
+    }
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if (check_if_parent_dir(entry->d_name))
+        {
+            continue;
+        }
+
+        char *child_path = join_paths(path, entry->d_name, arena);
+        if (remove_path_recursive(child_path, arena) != EXIT_SUCCESS)
+        {
+            closedir(dir);
+            return EXIT_FAILURE;
+        }
+    }
+
+    closedir(dir);
+
+    if (rmdir(path) != 0)
+    {
+        perror("rmdir");
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
 // TODO: Implement pattern matching for copy
 
 // int copy_dir_or_file_threaded_pattern(char *source, char *destination, Arena *arena)
@@ -291,4 +361,34 @@ int command_copy(Cli_args *args, Arena *arena)
     char *destination = args->destination;
 
     return copy_dir_or_file_threaded(source, destination, arena);
+}
+
+int command_move(Cli_args *args, Arena *arena)
+{
+    if (args->source == NULL || args->destination == NULL)
+    {
+        fprintf(stderr, "Error: Source and destination are required\n");
+        return EXIT_FAILURE;
+    }
+
+    char *destination = resolve_move_destination(args->source, args->destination, arena);
+    if (rename(args->source, destination) == 0)
+    {
+        return EXIT_SUCCESS;
+    }
+
+    if (errno != EXDEV)
+    {
+        perror("rename");
+        return EXIT_FAILURE;
+    }
+
+    Cli_args copy_args = *args;
+    copy_args.destination = destination;
+    if (command_copy(&copy_args, arena) != EXIT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
+
+    return remove_path_recursive(args->source, arena);
 }
