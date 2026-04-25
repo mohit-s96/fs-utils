@@ -214,7 +214,7 @@ Cli_args *parse_cli(int argc, char **argv, Arena *arena)
             /* strip trailing newline if present */
             path[strcspn(path, "\n")] = '\0';
         }
-        args->path = path;
+        args->path = strcmp("\0", path) == 0 ? "." : path;
     }
 
     if (args->depth < 0)
