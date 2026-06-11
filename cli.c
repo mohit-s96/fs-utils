@@ -92,7 +92,10 @@ void parse_options(Cli_args *args, int argc, char **argv, int *start_at)
         {
             args->ignore_case = true;
         }
-
+        if (0 == strcmp(input, "--raw") || 0 == strcmp(input, "-r"))
+        {
+            args->raw_byte_size = true;
+        }
         (*start_at)++;
     }
 }
@@ -207,7 +210,7 @@ Cli_args *parse_cli(int argc, char **argv, Arena *arena)
         }
     }
 
-    if (piped)
+    if (piped && !args->path)
     {
         if (fgets(path, sizeof(char) * 4096, stdin))
         {

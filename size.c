@@ -24,8 +24,15 @@ int command_size(Cli_args *args, Arena *arena)
     else
     {
         unsigned long long recursive_dir_size = get_dir_size_threaded(path, args->depth > 1 ? args->depth : MAX_DEPTH, arena);
-        format_size(recursive_dir_size, buffer, sizeof(buffer));
-        printf("%s\n", buffer);
+        if (!args->raw_byte_size)
+        {
+            format_size(recursive_dir_size, buffer, sizeof(buffer));
+            printf("%s\n", buffer);
+        }
+        else
+        {
+            printf("%llu\n", recursive_dir_size);
+        }
     }
     return EXIT_SUCCESS;
 }

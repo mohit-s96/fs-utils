@@ -449,6 +449,7 @@ void print_help(char *name)
     printf("  --depth       - Maximum depth\n");
     printf("  -d            - Create directory instead of file with 'new'\n\n");
     printf("  -c            - Compact mode for ls\n");
+    printf("  --raw|-r      - Show raw byte size for size command\n\n");
 
     printf("Examples:\n");
     printf("  %s ls -s /sorts/by/size\n", name);

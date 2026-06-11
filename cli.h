@@ -33,6 +33,7 @@ typedef struct
     bool no_recurse;
     bool compact;
     bool ignore_case;
+    bool raw_byte_size;
 } Cli_args;
 
 commands get_command_type(char *command);
