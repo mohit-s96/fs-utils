@@ -187,7 +187,7 @@ int command_ls(Cli_args *args, Arena *arena)
             // unknown platform, default to mtime
             stat_list[i].last_modified = sb.st_mtime;
 #endif
-            if ((sb.st_mode & S_IFMT) == S_IFDIR && !check_if_parent_dir(dir->d_name))
+            if ((sb.st_mode & S_IFMT) == S_IFDIR && !check_if_parent_dir(dir->d_name) && args->depth > 0)
             {
                 unsigned long long s = get_dir_size(full_path, args->depth);
                 stat_list[i].size = s;
